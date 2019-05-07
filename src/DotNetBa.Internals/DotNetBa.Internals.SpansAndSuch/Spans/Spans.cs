@@ -10,7 +10,7 @@ namespace DotNetBa.Internals.SpansAndSuch.Spans
      *
      * Encapsulates any kind of memory
      * Allows pointer coercion (reinterpret cast)
-     * Is ref struct and cannot leave stack under any conditions
+     * Is ref struct and cannot leave stack under any conditions (not in async methods, not in a class field, not in captured scope)
      * Array-like performance
      * Allocation-free operations
      * Makes use of ref returns and ref readonly returns
@@ -61,6 +61,17 @@ namespace DotNetBa.Internals.SpansAndSuch.Spans
 
             var doubleSpan = MemoryMarshal.Cast<int, double>(intSpan);
             Assert.Equal(byteArray.Length / 8, doubleSpan.Length);
+        }
+
+        [Fact]
+        public Span<byte> Limitations()
+        {
+            Span<byte> array = stackalloc byte[100];
+
+            //object o = array;
+
+            //return array;
+            return Span<byte>.Empty;
         }
     }
 }

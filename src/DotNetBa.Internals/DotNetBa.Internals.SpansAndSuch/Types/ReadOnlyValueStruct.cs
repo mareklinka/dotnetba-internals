@@ -24,5 +24,7 @@
         public readonly double Value6;
         public readonly double Value7;
         public readonly double Value8;
+
+        public int Val => Value1;
     }
 }

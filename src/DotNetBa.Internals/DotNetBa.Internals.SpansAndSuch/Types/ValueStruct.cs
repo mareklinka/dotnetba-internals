@@ -11,5 +11,7 @@
         public double Value6;
         public double Value7;
         public double Value8;
+
+        public int Val => Value1;
     }
 }
