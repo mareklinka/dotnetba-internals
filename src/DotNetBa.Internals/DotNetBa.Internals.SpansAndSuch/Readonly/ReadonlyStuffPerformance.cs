@@ -1,6 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using DotNetBa.Internals.SpansAndSuch.Types;
@@ -25,6 +23,15 @@ namespace DotNetBa.Internals.SpansAndSuch.Readonly
                 .With(loggers: new XunitTestOutputLogger(_helper));
 
             BenchmarkRunner.Run<ReadonlyBenchmark>(manualConfig);
+        }
+
+        [Fact]
+        public void DefensiveCopyForReadOnlyReturn()
+        {
+            var manualConfig = ManualConfig.Create(DefaultConfig.Instance)
+                .With(loggers: new XunitTestOutputLogger(_helper));
+
+            BenchmarkRunner.Run<ReadonlyReturnBenchmark>(manualConfig);
         }
 
         public class ReadonlyBenchmark
@@ -52,6 +59,38 @@ namespace DotNetBa.Internals.SpansAndSuch.Readonly
             public int Function(in ValueStruct s)
             {
                 return s.Value1 + s.Val;
+            }
+        }
+
+        public class ReadonlyReturnBenchmark
+        {
+            private readonly ReadOnlyValueStruct _roData = new ReadOnlyValueStruct();
+            private readonly ValueStruct _data = new ValueStruct();
+
+            [Benchmark(Baseline = true)]
+            public int NormalStruct()
+            {
+                ref readonly var s = ref Function(_data);
+
+                return s.Val;
+            }
+
+            [Benchmark]
+            public int ReadOnlyStruct()
+            {
+                ref readonly var s = ref Function(_roData);
+
+                return s.Val;
+            }
+
+            public ref readonly ReadOnlyValueStruct Function(in ReadOnlyValueStruct s)
+            {
+                return ref s;
+            }
+
+            public ref readonly ValueStruct Function(in ValueStruct s)
+            {
+                return ref s;
             }
         }
     }
