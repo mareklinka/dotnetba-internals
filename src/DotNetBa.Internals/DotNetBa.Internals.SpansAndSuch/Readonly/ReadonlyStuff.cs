@@ -14,6 +14,8 @@ namespace DotNetBa.Internals.SpansAndSuch.Readonly
          * Recommendation: it's best to only pass readonly structs as in parameters
          *
          * Ref readonly return enforces immutability on the struct but also requires defensive copying for non-readonly structs
+         * In parameters only prevent the callee from modifying the value. Other places (multi-thread?) can do so freely
+         * Overloading: you can overload value parameter by in parameter; you cannot overload a ref by an in
          */
 
         private RefStruct MyRefStruct => new RefStruct();
@@ -79,6 +81,14 @@ namespace DotNetBa.Internals.SpansAndSuch.Readonly
             ref readonly var y = ref (a.Length >= 2 ? ref ReturnReadonlyN(a, 1) : ref ReturnReadonlyN(a, 0));
         }
 
+        [Fact]
+        public void Extensions()
+        {
+            var s = new ValueStruct();
+            s.DoByRef();
+            s.DoIn();
+        }
+
         private void Function(in RefStruct s)
         {
         }
@@ -122,6 +132,18 @@ namespace DotNetBa.Internals.SpansAndSuch.Readonly
         private ref readonly ReadOnlyValueStruct ReturnReadonlyN(ReadOnlyValueStruct[] array, int i)
         {
             return ref array[i];
+        }
+    }
+
+    public static class RefExtensions
+    {
+        public static void DoByRef(this ref ValueStruct s)
+        {
+        }
+
+
+        public static void DoIn(this in ValueStruct s)
+        {
         }
     }
 }

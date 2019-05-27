@@ -33,6 +33,29 @@ namespace DotNetBa.Internals.SpansAndSuch.OldRef
             ValueFunction(ref s);
         }
 
+        [Fact]
+        public void DoTwoThingsWithStruct()
+        {
+            var a = new ValueStruct[10];
+
+            a[0].Value1 = 1;
+            a[0].Value2 = 2;
+
+            // or
+            var s = a[0];
+            s.Value1 = 1;
+            s.Value2 = 2;
+
+            // best
+            DoTwoThings(ref a[0]);
+        }
+
+        private void DoTwoThings(ref ValueStruct s)
+        {
+            s.Value1 = 1;
+            s.Value2 = 2;
+        }
+
         private void ObjectFunction(MyObject o)
         {
         }

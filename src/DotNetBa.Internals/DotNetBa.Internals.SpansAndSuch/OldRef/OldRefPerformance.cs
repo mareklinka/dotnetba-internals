@@ -26,6 +26,15 @@ namespace DotNetBa.Internals.SpansAndSuch.OldRef
             BenchmarkRunner.Run<ArrayInitBenchmark>(manualConfig);
         }
 
+        [Fact]
+        public void SettingValue()
+        {
+            var manualConfig = ManualConfig.Create(DefaultConfig.Instance)
+                .With(loggers: new XunitTestOutputLogger(_helper));
+
+            BenchmarkRunner.Run<SetValueBenchmark>(manualConfig);
+        }
+
         [MemoryDiagnoser]
         public class ArrayInitBenchmark
         {
@@ -38,7 +47,7 @@ namespace DotNetBa.Internals.SpansAndSuch.OldRef
             }
 
             [Benchmark(Baseline = true)]
-            public void SetStructValue()
+            public void SetStructValues()
             {
                 for (var i = 0; i < _data.Length; i++)
                 {
@@ -47,7 +56,7 @@ namespace DotNetBa.Internals.SpansAndSuch.OldRef
             }
 
             [Benchmark]
-            public void SetStructValueByRef()
+            public void SetStructValuesByRef()
             {
                 for (var i = 0; i < _data.Length; i++)
                 {
@@ -63,6 +72,61 @@ namespace DotNetBa.Internals.SpansAndSuch.OldRef
             [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
             private void DoSomethingWithStruct(ValueStruct s)
             {
+            }
+        }
+
+        [MemoryDiagnoser]
+        public class SetValueBenchmark
+        {
+            private ValueStruct[] _data;
+
+            [GlobalSetup]
+            public void Setup()
+            {
+                _data = new ValueStruct[1000];
+            }
+
+            [Benchmark(Baseline = true)]
+            [MethodImpl(MethodImplOptions.NoOptimization)]
+            public void ArrayAccess()
+            {
+                for (var i = 0; i < _data.Length; i++)
+                {
+                    _data[i].Value1 = 1;
+                    _data[i].Value2 = 3;
+                }
+            }
+
+            [Benchmark]
+            [MethodImpl(MethodImplOptions.NoOptimization)]
+            public void CopyOut()
+            {
+                for (var i = 0; i < _data.Length; i++)
+                {
+                    var s = _data[i];
+
+                    s.Value1 = 1;
+                    s.Value2 = 3;
+
+                    _data[i] = s;
+                }
+            }
+
+            [Benchmark]
+            [MethodImpl(MethodImplOptions.NoOptimization)]
+            public void SetStructValuesByRef()
+            {
+                for (var i = 0; i < _data.Length; i++)
+                {
+                    DoSomethingWithStruct(ref _data[i]);
+                }
+            }
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            private void DoSomethingWithStruct(ref ValueStruct s)
+            {
+                s.Value1 = 1;
+                s.Value2 = 3;
             }
         }
     }
